@@ -1,20 +1,54 @@
 var express = require('express');
 var cors = require('cors');
-var app = express();
+var apps = express();
 
-app.all('/*', function(req, res, next) {
+apps.all('/*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 });
 
-app.use(cors());
+apps.use(cors());
 
-app.get('/user', function(req, res) {
+const request = require('request');
+
+apps.get('/user', function(req, res) {
   res.json({success: true});
+  //jscode = req.query.id;
   console.log(req.query.id); // get wx.login()
-});
 
-app.listen(3000, function () {
+  let options = {
+    url: 'https://api.weixin.qq.com/sns/jscode2session?appid=wx5be09fc9ea2bb7af&secret=73c38d218a25bd2399786e99dc55486a&js_code='+ req.query.id +'&grant_type=authorization_code'
+  };
+  request.get(options.url, function (err, response, body) {
+
+    console.log(JSON.parse(response.body).openid);
+    let obj = JSON.parse(response.body).openid;
+    console.log(response.body);
+
+    let opt = {
+      openId : obj,
+      amount : 1
+    }
+
+    request.post({
+      url:'https://open.ifprod.cc/api/v1/shoots/pay',
+      body: opt,
+      json: true
+    },   function(error, response, body) {
+        //console.log(response.body);
+        console.log(response.body);
+      }
+    );
+    console.log(pay_info);
+
+
+  })
+});
+/*
+
+*/
+
+apps.listen(3000, function () {
   console.log('listening on port 3000');
 })
